@@ -6,10 +6,7 @@ jobs:
   build:
     name: Test plugin
     timeout-minutes: 15
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: Setup python
@@ -26,4 +23,5 @@ jobs:
       - name: Run tests
         run: |
           python setup.py install
+          ls -l
           pytest -v tests/test.py
