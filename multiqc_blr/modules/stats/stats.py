@@ -79,11 +79,11 @@ class MultiqcModule(BaseMultiqcModule):
                 helptext='''
                 This longer description explains what exactly the numbers mean
                 and supports markdown formatting. This means that we can do _this_:
-    
+
                 * Something important
                 * Something else important
                 * Best of all - some `code`
-    
+
                 Doesn't matter if this is copied from documentation - makes it
                 easier for people to find quickly.
                 ''',
