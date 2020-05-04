@@ -23,5 +23,4 @@ jobs:
       - name: Run tests
         run: |
           python setup.py install
-          ls -l
-          pytest -v tests/test.py
+          pytest -v tests/tests.py
