@@ -6,7 +6,7 @@ example - INFO: Starting analysis
 example - INFO: Writing output bam file
 example - INFO: Analysis complete
 ===================================================
-STATS SUMMARY - blr.cli.buildmolecules
+STATS SUMMARY - blr.cli.example
 ---------------------------------------------------
 Total reads                                  20,088
 Unmapped reads                                1,321
