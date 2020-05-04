@@ -1,3 +1,4 @@
+![CI](https://github.com/pontushojer/MultiQC_BLR/workflows/CI/badge.svg?branch=master)
 # MultiQC BLR Plugin
 
 A MultiQC plugin for the [BLR analysis pipeline](https://github.com/FrickTobias/BLR). The plugin is based on [example_plugin](https://github.com/MultiQC/example-plugin). 
