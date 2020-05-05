@@ -34,8 +34,6 @@ class MultiqcModule(BaseMultiqcModule):
         self.headers = dict()
         self.stats_data = dict()
         for f in self.find_log_files('stats', filehandles=True):
-            log.info(f"Found BLR data {f['fn']}")
-            log.info(f)
             tool_name = self.get_tool_name(f["f"])
             if tool_name not in self.stats_data:
                 self.stats_data[tool_name] = dict()
@@ -60,8 +58,6 @@ class MultiqcModule(BaseMultiqcModule):
         # For each tool generat a separat statistics table for all found samples.
         for tool_name, data in self.stats_data.items():
             tool_name_title = tool_name.capitalize()
-
-            log.info(f"Adding section {tool_name_title}")
 
             # Write parsed report data to a file
             self.write_data_file(data, f"{tool_name}_stats")
