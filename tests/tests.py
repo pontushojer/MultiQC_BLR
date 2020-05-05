@@ -2,7 +2,7 @@ from pathlib import Path
 from shutil import copyfile
 import subprocess
 
-TESTDATA = Path("tests/data/example.log")
+TESTDATA = Path("tests/data/example_stats.log")
 EXPECTED_OUTPUT = Path("tests/expected_output/example_stats.txt")
 
 
