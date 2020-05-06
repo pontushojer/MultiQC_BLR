@@ -44,3 +44,10 @@ def execution_start():
         config.update_dict(config.sp,
                            {'stats': {'fn': '*.log',
                                       'contents_re': '^STATS SUMMARY:*'}})
+
+    if 'hapcut2/phasing_stats' not in config.sp:
+        # Current looking for file containing the string "switch rate:" on the first line.
+        config.update_dict(config.sp,
+                           {'hapcut2/phasing_stats': {'fn': '*.txt',
+                                                      'contents_re': '^switch rate:*',
+                                                      'num_lines': 1}})

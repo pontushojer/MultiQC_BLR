@@ -9,6 +9,7 @@ from multiqc import config
 from multiqc.plots import table
 from multiqc.modules.base_module import BaseMultiqcModule
 
+from multiqc_blr.utils import update_sample_name
 
 # Initialise the main MultiQC logger
 log = logging.getLogger('multiqc')
@@ -39,10 +40,12 @@ class MultiqcModule(BaseMultiqcModule):
                 self.stats_data[tool_name] = dict()
                 self.headers[tool_name] = OrderedDict()
 
-            self.stats_data[tool_name][f["s_name"]] = dict()
+            sample_name = update_sample_name(f["s_name"])
+            self.stats_data[tool_name][sample_name] = dict()
+
             for parameter, value in self.parse(f["f"]):
                 header_name = parameter.lower().replace(" ", "_")
-                self.stats_data[tool_name][f["s_name"]][header_name] = value
+                self.stats_data[tool_name][sample_name][header_name] = value
 
                 self.headers[tool_name][header_name] = {
                     'title': parameter

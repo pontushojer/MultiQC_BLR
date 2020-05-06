@@ -24,12 +24,13 @@ setup(
     entry_points={
         'multiqc.modules.v1': [
             'stats = multiqc_blr.modules.stats:MultiqcModule',
+            "hapcut2 = multiqc_blr.modules.hapcut2:MultiqcModule",
         ],
         'multiqc.cli_options.v1': [
             'disable_plugin = multiqc_blr.cli:disable_plugin'
         ],
         'multiqc.hooks.v1': [
-            'execution_start = multiqc_blr.custom_code:execution_start'
+            'execution_start = multiqc_blr.multiqc_blr:execution_start'
         ]
     },
     classifiers=[
