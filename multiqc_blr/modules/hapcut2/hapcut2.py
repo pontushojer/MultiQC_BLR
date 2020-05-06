@@ -88,7 +88,7 @@ class MultiqcModule(BaseMultiqcModule):
         for f in self.find_log_files('hapcut2/phasing_stats', filehandles=True):
             sample_name = update_sample_name(f["s_name"])
             self.phasing_data[sample_name] = dict()
-            
+
             for parameter, value in self.parse_phasing_stats(f["f"]):
                 self.phasing_data[sample_name][parameter] = value
 
