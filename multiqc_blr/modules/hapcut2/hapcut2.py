@@ -105,6 +105,8 @@ class MultiqcModule(BaseMultiqcModule):
         pconfig = {
             'id': 'hapcut2_phasing_stats_table',
             'title': "HapCUT2 phasing stats",
+            'scale': False,
+            'share_key': False
         }
         table_html = table.plot(self.phasing_data, self.headers, pconfig)
 
