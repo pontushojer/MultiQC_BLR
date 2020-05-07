@@ -6,10 +6,10 @@ from collections import OrderedDict
 import logging
 
 from multiqc import config
-from multiqc.plots import table
+from multiqc.plots import table, linegraph
 from multiqc.modules.base_module import BaseMultiqcModule
 
-from multiqc_blr.utils import update_sample_name
+from multiqc_blr.utils import update_sample_name, bin_sum
 
 # Initialise the main MultiQC logger
 log = logging.getLogger('multiqc')
@@ -94,10 +94,10 @@ class MultiqcModule(BaseMultiqcModule):
 
         # Nothing found - raise a UserWarning to tell MultiQC
         if len(self.phasing_data) == 0:
-            log.debug("Could not find any reports in {}".format(config.analysis_dir))
+            log.debug("Could not find any phasing stats reports in {}".format(config.analysis_dir))
             raise UserWarning
 
-        log.info("Found {} reports".format(len(self.phasing_data)))
+        log.info("Found {} phasing stats reports".format(len(self.phasing_data)))
 
         # Write parsed report data to a file
         self.write_data_file(self.phasing_data, f"hapcut2_phasing_stats")
@@ -120,6 +120,58 @@ class MultiqcModule(BaseMultiqcModule):
             plot=table_html
         )
 
+        #
+        # Phaseblocks section
+        #
+
+        # Collect rawdata of lengths from file
+        rawdata = dict()
+        for f in self.find_log_files('hapcut2/phaseblocks', filehandles=True):
+            sample_name = update_sample_name(f["s_name"])
+            rawdata[sample_name] = list()
+            for phaseblock in self.parse_phaseblocks(f["f"]):
+                rawdata[sample_name].append(phaseblock["phaseblock_length"])
+
+        # Generate bins relative to max phaseblock length and sum for each bin and sample to get plot data
+        self.phaseblock_lengths = dict()
+        binsize = 50000
+        max_length = max([max(v) for v in rawdata.values()])
+        bins = range(0, max_length + binsize, binsize)
+        for sample, data in rawdata.items():
+            _, weights = bin_sum(data, binsize=binsize, normalize=True)
+            self.phaseblock_lengths[sample] = {
+                int(b / 1000): w for b, w in zip(bins, weights)  # bin per kbp
+            }
+
+        # Nothing found - raise a UserWarning to tell MultiQC
+        if len(self.phasing_data) == 0:
+            log.debug("Could not find any phaseblock reports in {}".format(config.analysis_dir))
+            raise UserWarning
+
+        log.info("Found {} phaseblock reports".format(len(self.phasing_data)))
+
+        # Write parsed report data to a file
+        # TODO currently not able to write to file as int values not propertly written.
+        # self.write_data_file(self.phaseblock_lengths, f"hapcut2_phaseblocks")
+
+        phaseblock_config = {
+            'id': 'hapcut2_phasingblock_lengths',
+            'title': "HapCUT2 phaseblock lengths",
+            'xlab': "Phaseblock length (kbp)",
+            'ylab': 'Total DNA density',
+            'yCeiling': 1,
+            'tt_label': '{point.x} kbp: {point.y:.4f}',
+        }
+
+        plot_html = linegraph.plot(self.phaseblock_lengths, phaseblock_config)
+
+        # Add a report section with plot
+        self.add_section(
+            name="HapCUT2 phaseblock lengths",
+            description=f"Phaseblock lengths as reported by HapCUT2",
+            plot=plot_html
+        )
+
     @staticmethod
     def parse_phasing_stats(file):
         """
@@ -136,3 +188,32 @@ class MultiqcModule(BaseMultiqcModule):
                 value /= 1_000_000
 
             yield parameter, value
+
+    @staticmethod
+    def parse_phaseblocks(file):
+        """
+        Format  description from https://github.com/vibansal/HapCUT2/blob/master/outputformat.md
+
+        Example entry.
+        ```
+        BLOCK: offset: 6 len: 4 phased: 2 SPAN: 23514 fragments 1
+        ```
+
+        offset: <SNV offset>
+        len: <SNV span of block>
+        phased: <# SNVs phased>
+        SPAN: <base pair span of block>
+        fragments <# of fragments in block>
+
+        """
+        for line in file:
+            if line.startswith("BLOCK:"):
+                contents = line.split()
+                yield {
+                    "snv_span": int(contents[4]),
+                    "phased_snvs": int(contents[6]),
+                    "phaseblock_length": int(contents[8]),
+                    "fragments": int(contents[10])
+                }
+            else:
+                continue

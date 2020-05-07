@@ -51,3 +51,10 @@ def execution_start():
                            {'hapcut2/phasing_stats': {'fn': '*.txt',
                                                       'contents_re': '^switch rate:*',
                                                       'num_lines': 1}})
+    if 'hapcut2/phaseblocks' not in config.sp:
+        # Currently looking for file containing the string "switch rate:" on the first line.
+        config.update_dict(config.sp,
+                           {'hapcut2/phaseblocks': {
+                               'fn': '*.phase',
+                               'contents_re': "^BLOCK:*",
+                               'num_lines': 1}})
