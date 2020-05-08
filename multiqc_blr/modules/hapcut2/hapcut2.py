@@ -31,52 +31,60 @@ class MultiqcModule(BaseMultiqcModule):
             anchor="hapcut2",
             info=" is a package for haplotype assembly from sequencing data."
         )
+        n_phasing_stats_reports = self.gather_phasing_stats()
+        if n_phasing_stats_reports > 0:
+            log.info("Found {} phasing stats reports".format(n_phasing_stats_reports))
 
+        n_phaseblock_reports = self.gather_phaseblocks()
+        if n_phaseblock_reports > 0:
+            log.info("Found {} phaseblock reports".format(n_phaseblock_reports))
+
+    def gather_phasing_stats(self):
         # Create headers
-        self.headers = OrderedDict()
-        self.headers['switch rate'] = {
+        headers = OrderedDict()
+        headers['switch rate'] = {
             'title': 'Switch rate',
             'description': 'switch errors as a fraction of possible positions for switch errors',
             'format': '{:,.7f}',
             'placement': 1
             }
 
-        self.headers['mismatch rate'] = {
+        headers['mismatch rate'] = {
             'title': 'Mismatch rate',
             'description': 'mismatch errors as a fraction of possible positions for mismatch errors',
             'format': '{:,.7f}',
             'placement': 2
         }
 
-        self.headers['flat rate'] = {
+        headers['flat rate'] = {
             'title': 'Flat rate',
             'description': 'flat errors as a fraction of possible positions for flat errors',
             'format': '{:,.7f}',
             'hidden': True,
         }
 
-        self.headers['phased count'] = {
+        headers['phased count'] = {
             'title': 'Phased count',
             'description': 'count of total SNVs phased in the test haplotype',
             'format': '{:,.0f}',
             'placement': 3
         }
 
-        self.headers['AN50'] = {
+        headers['AN50'] = {
             'title': 'AN50 (Mbp)',
             'description': 'the AN50 metric of haplotype completeness',
             'format': '{:,.3f}',
             'hidden': True
         }
 
-        self.headers['N50'] = {
+        headers['N50'] = {
             'title': 'N50 (Mbp)',
             'description': 'the N50 metric of haplotype completeness',
             'format': '{:,.3f}',
             'placement': 4
         }
 
-        self.headers['num snps max blk'] = {
+        headers['num snps max blk'] = {
             'title': 'SNPs in max blk',
             'description': 'the fraction of SNVs in the largest (most variants phased) block',
             'format': '{:,.0f}',
@@ -84,46 +92,39 @@ class MultiqcModule(BaseMultiqcModule):
         }
 
         # Find and load any input files for this module
-        self.phasing_data = dict()
+        phasing_data = dict()
         for f in self.find_log_files('hapcut2/phasing_stats', filehandles=True):
             sample_name = update_sample_name(f["s_name"])
-            self.phasing_data[sample_name] = dict()
+            phasing_data[sample_name] = dict()
 
             for parameter, value in self.parse_phasing_stats(f["f"]):
-                self.phasing_data[sample_name][parameter] = value
+                phasing_data[sample_name][parameter] = value
 
-        # Nothing found - raise a UserWarning to tell MultiQC
-        if len(self.phasing_data) == 0:
-            log.debug("Could not find any phasing stats reports in {}".format(config.analysis_dir))
-            raise UserWarning
+        if len(phasing_data) > 0:
+            # Write parsed report data to a file
+            self.write_data_file(phasing_data, f"hapcut2_phasing_stats")
 
-        log.info("Found {} phasing stats reports".format(len(self.phasing_data)))
+            pconfig = {
+                'id': 'hapcut2_phasing_stats_table',
+                'title': "HapCUT2 phasing stats",
+                'scale': False,
+                'share_key': False
+            }
+            table_html = table.plot(phasing_data, headers, pconfig)
 
-        # Write parsed report data to a file
-        self.write_data_file(self.phasing_data, f"hapcut2_phasing_stats")
+            # Add a report section with table
+            self.add_section(
+                name="HapCUT2 phasing stats",
+                description=f"Statistics table",
+                helptext='''
+                Description of statistics (taken from https://github.com/vibansal/HapCUT2/tree/master/utilities):
+                ''',
+                plot=table_html
+            )
 
-        pconfig = {
-            'id': 'hapcut2_phasing_stats_table',
-            'title': "HapCUT2 phasing stats",
-            'scale': False,
-            'share_key': False
-        }
-        table_html = table.plot(self.phasing_data, self.headers, pconfig)
+        return len(phasing_data)
 
-        # Add a report section with table
-        self.add_section(
-            name="HapCUT2 phasing stats",
-            description=f"Statistics table",
-            helptext='''
-            Description of statistics (taken from https://github.com/vibansal/HapCUT2/tree/master/utilities):
-            ''',
-            plot=table_html
-        )
-
-        #
-        # Phaseblocks section
-        #
-
+    def gather_phaseblocks(self):
         # Collect rawdata of lengths from file
         rawdata = dict()
         for f in self.find_log_files('hapcut2/phaseblocks', filehandles=True):
@@ -133,44 +134,45 @@ class MultiqcModule(BaseMultiqcModule):
                 rawdata[sample_name].append(phaseblock["phaseblock_length"])
 
         # Generate bins relative to max phaseblock length and sum for each bin and sample to get plot data
-        self.phaseblock_lengths = dict()
-        binsize = 50000
-        max_length = max([max(v) for v in rawdata.values()])
-        bins = range(0, max_length + binsize, binsize)
-        for sample, data in rawdata.items():
-            _, weights = bin_sum(data, binsize=binsize, normalize=True)
-            self.phaseblock_lengths[sample] = {
-                int(b / 1000): w for b, w in zip(bins, weights)  # bin per kbp
+        phaseblock_lengths = dict()
+        if rawdata:
+            binsize = 50000
+            max_length = max([max(v) for v in rawdata.values()])
+            bins = range(0, max_length + binsize, binsize)
+            for sample, data in rawdata.items():
+                _, weights = bin_sum(data, binsize=binsize, normalize=True)
+                phaseblock_lengths[sample] = {
+                    int(b / 1000): w for b, w in zip(bins, weights)  # bin per kbp
+                }
+
+        if phaseblock_lengths:
+            pconfig = {
+                'id': 'hapcut2_phasingblock_lengths',
+                'title': "HapCUT2 phaseblock lengths",
+                'xlab': "Phaseblock length (kbp)",
+                'ylab': 'Total DNA density',
+                'yCeiling': 1,
+                'tt_label': '{point.x} kbp: {point.y:.4f}',
             }
 
-        # Nothing found - raise a UserWarning to tell MultiQC
-        if len(self.phasing_data) == 0:
-            log.debug("Could not find any phaseblock reports in {}".format(config.analysis_dir))
-            raise UserWarning
+            plot_html = linegraph.plot(phaseblock_lengths, pconfig)
 
-        log.info("Found {} phaseblock reports".format(len(self.phasing_data)))
+            # Add a report section with plot
+            self.add_section(
+                name="HapCUT2 phaseblock lengths",
+                description=f"Phaseblock lengths as reported by HapCUT2",
+                plot=plot_html
+            )
 
-        # Write parsed report data to a file
-        # TODO currently not able to write to file as int values not propertly written.
-        # self.write_data_file(self.phaseblock_lengths, f"hapcut2_phaseblocks")
+            # Make new dict with keys as strings for writable output.
+            phaseblock_lengths_writable = dict()
+            for sample, data in phaseblock_lengths.items():
+                phaseblock_lengths_writable[sample] = {str(k): v for k, v in data.items()}
 
-        phaseblock_config = {
-            'id': 'hapcut2_phasingblock_lengths',
-            'title': "HapCUT2 phaseblock lengths",
-            'xlab': "Phaseblock length (kbp)",
-            'ylab': 'Total DNA density',
-            'yCeiling': 1,
-            'tt_label': '{point.x} kbp: {point.y:.4f}',
-        }
+            # Write parsed report data to a file
+            self.write_data_file(phaseblock_lengths_writable, f"hapcut2_phaseblock_lengths")
 
-        plot_html = linegraph.plot(self.phaseblock_lengths, phaseblock_config)
-
-        # Add a report section with plot
-        self.add_section(
-            name="HapCUT2 phaseblock lengths",
-            description=f"Phaseblock lengths as reported by HapCUT2",
-            plot=plot_html
-        )
+        return len(phaseblock_lengths)
 
     @staticmethod
     def parse_phasing_stats(file):
