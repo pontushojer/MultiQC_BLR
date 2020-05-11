@@ -44,4 +44,3 @@ def test_hapcut2(tmpdir):
                         EXPECTED_OUTPUT_HAPCUT2_PHASING_STATS)
     comp_files_linewise(Path(tmpdir / "multiqc_data" / "hapcut2_phaseblock_lengths.txt"),
                         EXPECTED_OUTPUT_HAPCUT2_PHASEBLOCK_LEN)
-
