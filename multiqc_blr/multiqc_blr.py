@@ -43,7 +43,7 @@ def execution_start():
         # Current looking for file ending with ".log" and having the content "STATS SUMMARY:" on one line.
         config.update_dict(config.sp,
                            {'stats': {'fn': '*.log',
-                                      'contents_re': '^STATS SUMMARY:*'}})
+                                      'contents_re': '^STATS SUMMARY - blr.cli.*'}})
 
     if 'hapcut2/phasing_stats' not in config.sp:
         # Current looking for file containing the string "switch rate:" on the first line.
