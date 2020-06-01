@@ -102,7 +102,7 @@ class MultiqcModule(BaseMultiqcModule):
 
         if len(phasing_data) > 0:
             # Write parsed report data to a file
-            self.write_data_file(phasing_data, f"hapcut2_phasing_stats")
+            self.write_data_file(phasing_data, "hapcut2_phasing_stats")
 
             pconfig = {
                 'id': 'hapcut2_phasing_stats_table',
@@ -115,7 +115,7 @@ class MultiqcModule(BaseMultiqcModule):
             # Add a report section with table
             self.add_section(
                 name="HapCUT2 phasing stats",
-                description=f"Statistics table",
+                description="Statistics table",
                 helptext='''
                 Description of statistics (taken from https://github.com/vibansal/HapCUT2/tree/master/utilities):
                 ''',
@@ -160,7 +160,7 @@ class MultiqcModule(BaseMultiqcModule):
             # Add a report section with plot
             self.add_section(
                 name="HapCUT2 phaseblock lengths",
-                description=f"Phaseblock lengths as reported by HapCUT2",
+                description="Phaseblock lengths as reported by HapCUT2",
                 plot=plot_html
             )
 
@@ -170,7 +170,7 @@ class MultiqcModule(BaseMultiqcModule):
                 phaseblock_lengths_writable[sample] = {str(k): v for k, v in data.items()}
 
             # Write parsed report data to a file
-            self.write_data_file(phaseblock_lengths_writable, f"hapcut2_phaseblock_lengths")
+            self.write_data_file(phaseblock_lengths_writable, "hapcut2_phaseblock_lengths")
 
         return len(phaseblock_lengths)
 
