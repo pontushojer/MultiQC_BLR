@@ -47,7 +47,7 @@ class MultiqcModule(BaseMultiqcModule):
 
             sample_name = update_sample_name(f["s_name"])
 
-            if sample_name in self.stats_data_data[tool_name]:
+            if sample_name in self.stats_data[tool_name]:
                 log.debug(f"Duplicate sample name found for tool {tool_name}! Overwriting: {sample_name}")
 
             self.stats_data[tool_name][sample_name] = dict()
