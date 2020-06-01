@@ -47,6 +47,8 @@ class MultiqcModule(BaseMultiqcModule):
 
             sample_name = update_sample_name(f["s_name"])
 
+            log.debug(f"Found report for tool {tool_name} with sample {sample_name}")
+
             if sample_name in self.stats_data[tool_name]:
                 log.debug(f"Duplicate sample name found for tool {tool_name}! Overwriting: {sample_name}")
 
