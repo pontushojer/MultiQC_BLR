@@ -36,6 +36,11 @@ class MultiqcModule(BaseMultiqcModule):
         self.stats_data = dict()
         for f in self.find_log_files('stats', filehandles=True):
             tool_name = self.get_tool_name(f["f"])
+
+            # If tool_name is None then there are no stats in the file --> skip.
+            if not tool_name:
+                continue
+
             if tool_name not in self.stats_data:
                 self.stats_data[tool_name] = dict()
                 self.headers[tool_name] = OrderedDict()

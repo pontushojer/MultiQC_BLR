@@ -40,10 +40,11 @@ def execution_start():
 
     # Add to the search patterns used by modules
     if 'stats' not in config.sp:
-        # Current looking for file ending with ".log" and having the content "STATS SUMMARY:" on one line.
+        # Current looking for file ending with ".log" and having the content "SETTINGS FOR:" on the first line
         config.update_dict(config.sp,
                            {'stats': {'fn': '*.log',
-                                      'contents_re': '^STATS SUMMARY - blr.cli.*'}})
+                                      'contents_re': '^SETTINGS FOR:*',
+                                      'num_lines': 1}})
 
     if 'hapcut2/phasing_stats' not in config.sp:
         # Current looking for file containing the string "switch rate:" on the first line.
