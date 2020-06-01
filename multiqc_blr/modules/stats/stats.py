@@ -46,6 +46,10 @@ class MultiqcModule(BaseMultiqcModule):
                 self.headers[tool_name] = OrderedDict()
 
             sample_name = update_sample_name(f["s_name"])
+
+            if sample_name in self.stats_data_data[tool_name]:
+                log.debug(f"Duplicate sample name found for tool {tool_name}! Overwriting: {sample_name}")
+
             self.stats_data[tool_name][sample_name] = dict()
 
             for parameter, value in self.parse(f["f"]):
@@ -61,7 +65,8 @@ class MultiqcModule(BaseMultiqcModule):
             log.debug("Could not find any reports in {}".format(config.analysis_dir))
             raise UserWarning
 
-        log.info("Found {} reports".format(len(self.stats_data)))
+        log.info(f"Found {len(self.stats_data)} tools (Report per tool: "
+                 f"{', '.join([tool + '=' + str(len(reps)) for tool, reps in self.stats_data.items()])})")
 
         # For each tool generat a separat statistics table for all found samples.
         for tool_name, data in self.stats_data.items():
