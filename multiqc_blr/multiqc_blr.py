@@ -38,6 +38,9 @@ def execution_start():
     #   so we check whether the value is already set. This is to avoid
     #   clobbering values that have been customised by users.
 
+    # Increase filesize limit, large log files might be missed otherwise
+    config.update_dict({'log_filesize_limit': 100_000_000})
+
     # Add to the search patterns used by modules
     if 'stats' not in config.sp:
         # Current looking for file ending with ".log" and having the content "SETTINGS FOR:" on the first line
