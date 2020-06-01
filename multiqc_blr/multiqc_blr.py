@@ -39,7 +39,7 @@ def execution_start():
     #   clobbering values that have been customised by users.
 
     # Increase filesize limit, large log files might be missed otherwise
-    config.update_dict({'log_filesize_limit': 100_000_000})
+    config.mqc_add_config({'log_filesize_limit': 100_000_000})
 
     # Add to the search patterns used by modules
     if 'stats' not in config.sp:
